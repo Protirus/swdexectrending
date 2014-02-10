@@ -1,3 +1,5 @@
+var object_count = 20;
+
 var top_1 = {
 	"name" : "XYZ 2135470353", 
 	"stats" : {
