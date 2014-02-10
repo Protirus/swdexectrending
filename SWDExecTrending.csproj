@@ -7,14 +7,14 @@
     <ProjectGuid>{CA3682F1-3E83-43E0-A3FE-720239D21A45}</ProjectGuid>
     <OutputType>Exe</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>SWDExecTrending</RootNamespace>
+    <RootNamespace>Symantec.CWoC</RootNamespace>
     <AssemblyName>SWDExecTrending</AssemblyName>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
-    <OutputPath>bin\Debug\</OutputPath>
+    <OutputPath>.\</OutputPath>
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
@@ -22,7 +22,7 @@
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
     <Optimize>true</Optimize>
-    <OutputPath>bin\Release\</OutputPath>
+    <OutputPath>.\</OutputPath>
     <DefineConstants>TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
@@ -37,7 +37,6 @@
     <Reference Include="Altiris.NS" />
     <Reference Include="Altiris.NS.StandardItems" />
     <Reference Include="Altiris.Resource" />
-
   </ItemGroup>
   <ItemGroup>
     <Compile Include="APIWrapper.cs" />
