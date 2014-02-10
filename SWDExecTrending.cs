@@ -37,7 +37,7 @@ select top 100 AdvertisementId
         static void GenerateJSONFile(string advertisementid, int index) {
 
             string sql = @"
-select AdvertisementName , DATEPART(yy, e.Start) as 'Year', DATEPART(MM, e.Start) as 'Month', DATEPART(DD, e.Start) as 'Day', DATEPART(hh, e.Start) as 'Hour', COUNT(*) as '#', ISNULL(SUM(CASE returncode WHEN 0 THEN 1 WHEN 3010 THEN 1 WHEN 1641 THEN 1 END), 0) as 'Success', SUM(CASE returncode WHEN 0 THEN 0 ELSE 1 END) as 'Error'
+select AdvertisementName , DATEPART(yy, e.Start) as 'Year', DATEPART(MM, e.Start) as 'Month', DATEPART(DD, e.Start) as 'Day', DATEPART(hh, e.Start) as 'Hour', COUNT(*) as '#', ISNULL(SUM(CASE returncode WHEN 0 THEN 1 WHEN 3010 THEN 1 WHEN 1641 THEN 1 END), 0) as 'Success', SUM(CASE returncode WHEN 0 THEN 0 WHEN 3010 THEN 0 WHEN 1641 THEN 0 ELSE 1 END) as 'Error'
   from Evt_AeX_SWD_Execution e
  where e.AdvertisementId = '{0}'
    and e.Start < getdate()
