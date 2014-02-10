@@ -17,7 +17,7 @@ namespace Symantec.CWoC {
             // Get the top 100 SWD Exec guids from the DB
             string sql = @"
 select top 100 AdvertisementId
-  from Evt_AeX_SWD_Execution
+  from Evt_AeX_SWD_Execution e
  where e.Start < getdate()
  group by AdvertisementName, AdvertisementId
  order by COUNT(*) desc";
@@ -41,8 +41,9 @@ select AdvertisementName , DATEPART(yy, e.Start) as 'Year', DATEPART(MM, e.Start
   from Evt_AeX_SWD_Execution e
  where e.AdvertisementId = '{0}'
    and e.Start < getdate()
+   and e.Start > getdate() - 30
  group by AdvertisementName, DATEPART(yy, e.Start), DATEPART(MM, e.Start), DATEPART(DD, e.Start), DATEPART(hh, e.Start)
- order by DATEPART(MM, e.Start) desc, DATEPART(DD, e.Start) desc, DATEPART(hh, e.Start) desc
+ order by DATEPART(yy, e.Start) desc, DATEPART(MM, e.Start) desc, DATEPART(DD, e.Start) desc, DATEPART(hh, e.Start) desc
 ";
             DataTable stats = DatabaseAPI.GetTable(String.Format(sql, advertisementid));
             
