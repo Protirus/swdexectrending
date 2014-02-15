@@ -9,9 +9,9 @@ namespace Symantec.CWoC {
     class SWDExecTrending {
 
         public static readonly int version = 1;
-        public static readonly string usage = @"
-SWD Execution Trending - JavaScript builder, version " + version.ToString() + @".)
-
+        public static readonly string version_message = @"
+SWD Execution Trending - JavaScript builder, version " + version.ToString();
+        public static readonly string usage = version_message + @"
 Usage:
 
     Invoke this tool with no command line arguments. It will automatically read
@@ -48,13 +48,22 @@ Usage:
     is especially needed for SWD policies such as the ""Windows System Asses-
     -sment Scan"" that is largely deployed and almost always running on
     computers.
+
+    The program returns 0 if it produces any JavaScript output.
+    The program returns 1 if it prints out command line help or version message.
+    The program returns -1 if the user is not member of the Altiris Admini-
+        -strator group.
 ";
 
         static int Main(string[] args) {
 
 
             if (args.Length > 0) {
-                Console.WriteLine(usage);
+                if (args[0].ToLower() == "/version" || args[0].ToLower() == "--version") {
+                    Console.WriteLine(version_message);
+                } else {
+                    Console.WriteLine(usage);
+                }
                 return 1;
             }
 
