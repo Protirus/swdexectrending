@@ -7,10 +7,59 @@ using Symantec.CWoC.APIWrappers;
 
 namespace Symantec.CWoC {
     class SWDExecTrending {
+
+        public static readonly int version = 1;
+        public static readonly string usage = @"
+SWD Execution Trending - JavaScript builder, version " + version.ToString() + @".)
+
+Usage:
+
+    Invoke this tool with no command line arguments. It will automatically read
+    the content of EvT_AeX_SWD_Execution and will produce a JavaScript string
+    to stdout.
+
+    The javascript defines a global variable named object_count that matches the
+    count of Policy Execution for which trending data was generated (100 max).
+
+    Each policy execution trend data will match the following outline:
+
+        var top_n = { // where n is the row id
+            ""name"" : ""<SWD Policy name>"",
+            "" stats"" : {
+                ""hourly"" : [
+                    [""Date"", ""Total"", ""Success"", ""Error""],
+                    [ ... ], // Hourly statistics for the Policy
+                    [ ... ],
+                    [ ... ]
+                ]
+            }
+        }
+
+    The policies are order by execution count in descending order, limited to
+    100 at most. The SQL was adjusted to take care of special cases:
+
+        * Data that indicates the Policy execution took place in the future
+            is not included
+        * Data going back more than 30 days is not included
+
+    The first is to avoid computers that are operating with an invalid date
+    from disrupting the trend graphs, the later is to avoid computers coming
+    back from long period of inactivity from disrupting the trend graphs (this
+    is especially needed for SWD policies such as the ""Windows System Asses-
+    -sment Scan"" that is largely deployed and almost always running on
+    computers.
+";
+
         static int Main(string[] args) {
 
+
+            if (args.Length > 0) {
+                Console.WriteLine(usage);
+                return 1;
+            }
+
             // Check the user is Altiris admin or not?
-            if (!SecurityAPI.is_user_admin()) {
+            if (SecurityAPI.user_is_admin() == false) {
                 return -1;
             }
 
@@ -28,13 +77,13 @@ select top 100 AdvertisementId
             Console.WriteLine("var object_count = {0}", t.Rows.Count.ToString());
 
             foreach (DataRow r in t.Rows) {
-                GenerateJSONFile(r[0].ToString(), ++i);
+                Console.WriteLine(GenerateJSString(r[0].ToString(), ++i));
             }
 
             return 0;
 
         }
-        static void GenerateJSONFile(string advertisementid, int index) {
+        static string GenerateJSString(string advertisementid, int index) {
 
             string sql = @"
 select AdvertisementName , DATEPART(yy, e.Start) as 'Year', DATEPART(MM, e.Start) as 'Month', DATEPART(DD, e.Start) as 'Day', DATEPART(hh, e.Start) as 'Hour', COUNT(*) as '#', ISNULL(SUM(CASE returncode WHEN 0 THEN 1 WHEN 3010 THEN 1 WHEN 1641 THEN 1 END), 0) as 'Success', SUM(CASE returncode WHEN 0 THEN 0 WHEN 3010 THEN 0 WHEN 1641 THEN 0 ELSE 1 END) as 'Error'
@@ -46,10 +95,7 @@ select AdvertisementName , DATEPART(yy, e.Start) as 'Year', DATEPART(MM, e.Start
  order by DATEPART(yy, e.Start) desc, DATEPART(MM, e.Start) desc, DATEPART(DD, e.Start) desc, DATEPART(hh, e.Start) desc
 ";
             DataTable stats = DatabaseAPI.GetTable(String.Format(sql, advertisementid));
-            
-            string json_table = GetJSONFromTable(stats, index);
-
-            Console.WriteLine(json_table);
+            return GetJSONFromTable(stats, index);
         }
 
         public static string GetJSONFromTable(DataTable t, int index) {

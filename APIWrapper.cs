@@ -4,20 +4,15 @@ using System.Text;
 using System.Data;
 using System.Data.SqlClient;
 using System.Diagnostics;
-using Altiris.Common;
 using Altiris.Database;
-using Altiris.NS;
-using Altiris.NS.ItemManagement;
-using Altiris.NS.Logging;
 using Altiris.NS.ContextManagement;
 using Altiris.NS.Security;
-using Altiris.Resource;
 
 namespace Symantec.CWoC.APIWrappers
 {
     class SecurityAPI
     {
-        public static bool is_user_admin()
+        public static bool user_is_admin()
         {
             bool is_altiris_admin = false;
             string identity = string.Empty;
