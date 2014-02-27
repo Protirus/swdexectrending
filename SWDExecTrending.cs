@@ -8,18 +8,27 @@ using Symantec.CWoC.APIWrappers;
 namespace Symantec.CWoC {
     class SWDExecTrending {
 
-        public static readonly int version = 1;
+        public static readonly int version = 2;
         public static readonly string version_message = @"
 SWD Execution Trending - JavaScript builder, version " + version.ToString();
         public static readonly string usage = version_message + @"
 Usage:
 
-    Invoke this tool with no command line arguments. It will automatically read
-    the content of EvT_AeX_SWD_Execution and will produce a JavaScript string
-    to stdout.
+    SWDExecTrending --version | /version
+        Print out the version of this tool.
 
-    The javascript defines a global variable named object_count that matches the
-    count of Policy Execution for which trending data was generated (100 max).
+    SWDExecTrending /raw
+        Run the tool without filtering the data by _eventTime. The default
+        filter removes events dated in the future and older than 30 days.
+
+    SWDExecTrending
+        Invoke this tool with no command line arguments. It will automatically
+        read the content of EvT_AeX_SWD_Execution and will produce a JavaScript
+        string to stdout.
+
+    Output: The javascript defines a global variable named object_count that
+    matches the count of Policy Execution for which trending data was generated
+    (100 max).
 
     Each policy execution trend data will match the following outline:
 
@@ -52,19 +61,22 @@ Usage:
     The program returns 0 if it produces any JavaScript output.
     The program returns 1 if it prints out command line help or version message.
     The program returns -1 if the user is not member of the Altiris Admini-
-        -strator group.
+    -strator group.
 ";
 
         static int Main(string[] args) {
-
+            bool raw = false;
 
             if (args.Length > 0) {
                 if (args[0].ToLower() == "/version" || args[0].ToLower() == "--version") {
                     Console.WriteLine(version_message);
+                    return 1;
+                } else if (args[0].ToLower() == "/raw") {
+                    raw = true;
                 } else {
                     Console.WriteLine(usage);
+                    return 1;
                 }
-                return 1;
             }
 
             // Check the user is Altiris admin or not?
@@ -86,15 +98,25 @@ select top 100 AdvertisementId
             Console.WriteLine("var object_count = {0}", t.Rows.Count.ToString());
 
             foreach (DataRow r in t.Rows) {
-                Console.WriteLine(GenerateJSString(r[0].ToString(), ++i));
+                Console.WriteLine(GenerateJSString(r[0].ToString(), ++i, raw));
             }
 
             return 0;
 
         }
-        static string GenerateJSString(string advertisementid, int index) {
+        static string GenerateJSString(string advertisementid, int index, bool raw) {
 
-            string sql = @"
+            string sql;
+            if (raw) {
+                sql = @"
+select AdvertisementName , DATEPART(yy, e.Start) as 'Year', DATEPART(MM, e.Start) as 'Month', DATEPART(DD, e.Start) as 'Day', DATEPART(hh, e.Start) as 'Hour', COUNT(*) as '#', ISNULL(SUM(CASE returncode WHEN 0 THEN 1 WHEN 3010 THEN 1 WHEN 1641 THEN 1 END), 0) as 'Success', SUM(CASE returncode WHEN 0 THEN 0 WHEN 3010 THEN 0 WHEN 1641 THEN 0 ELSE 1 END) as 'Error'
+  from Evt_AeX_SWD_Execution e
+ where e.AdvertisementId = '{0}'
+ group by AdvertisementName, DATEPART(yy, e.Start), DATEPART(MM, e.Start), DATEPART(DD, e.Start), DATEPART(hh, e.Start)
+ order by DATEPART(yy, e.Start) desc, DATEPART(MM, e.Start) desc, DATEPART(DD, e.Start) desc, DATEPART(hh, e.Start) desc
+";
+            } else {
+                sql = @"
 select AdvertisementName , DATEPART(yy, e.Start) as 'Year', DATEPART(MM, e.Start) as 'Month', DATEPART(DD, e.Start) as 'Day', DATEPART(hh, e.Start) as 'Hour', COUNT(*) as '#', ISNULL(SUM(CASE returncode WHEN 0 THEN 1 WHEN 3010 THEN 1 WHEN 1641 THEN 1 END), 0) as 'Success', SUM(CASE returncode WHEN 0 THEN 0 WHEN 3010 THEN 0 WHEN 1641 THEN 0 ELSE 1 END) as 'Error'
   from Evt_AeX_SWD_Execution e
  where e.AdvertisementId = '{0}'
@@ -103,6 +125,7 @@ select AdvertisementName , DATEPART(yy, e.Start) as 'Year', DATEPART(MM, e.Start
  group by AdvertisementName, DATEPART(yy, e.Start), DATEPART(MM, e.Start), DATEPART(DD, e.Start), DATEPART(hh, e.Start)
  order by DATEPART(yy, e.Start) desc, DATEPART(MM, e.Start) desc, DATEPART(DD, e.Start) desc, DATEPART(hh, e.Start) desc
 ";
+            }
             DataTable stats = DatabaseAPI.GetTable(String.Format(sql, advertisementid));
             return GetJSONFromTable(stats, index);
         }
