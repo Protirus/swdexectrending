@@ -66,6 +66,7 @@ Usage:
 
         static int Main(string[] args) {
             bool raw = false;
+			bool msft = false;
 
             if (args.Length > 0) {
                 if (args[0].ToLower() == "/version" || args[0].ToLower() == "--version") {
@@ -73,6 +74,8 @@ Usage:
                     return 1;
                 } else if (args[0].ToLower() == "/raw") {
                     raw = true;
+                } else if (args[0].ToLower() == "/msft") {
+                    msft = true;
                 } else {
                     Console.WriteLine(usage);
                     return 1;
@@ -92,6 +95,19 @@ select top 100 AdvertisementId
  group by AdvertisementName, AdvertisementId
  order by COUNT(*) desc";
 
+ 
+			string sql_msft = @"
+select top 100 AdvertisementId --, AdvertisementName, count(*)
+  from Evt_AeX_SWD_Execution e
+ where e.Start < getdate()
+   and AdvertisementName like '%MS__-___'
+ group by AdvertisementName, AdvertisementId
+ order by COUNT(*) desc";
+ 
+			if (msft) {
+				sql = sql_msft;
+			}
+ 
             DataTable t = DatabaseAPI.GetTable(sql);
             int i = 0;
 
