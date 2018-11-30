@@ -17,6 +17,7 @@ There are also some **Docs**
 
 - [Guide](/docs/GUIDE.md)
 - [ChangeLog](/docs/CHANGELOG.md)
+- [Build](/docs/BUILD.md)
 - [Switches](/docs/SWITCHES.md)
 
 --
