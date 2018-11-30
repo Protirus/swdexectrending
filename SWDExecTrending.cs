@@ -8,7 +8,7 @@ using Symantec.CWoC.APIWrappers;
 namespace Symantec.CWoC {
     class SWDExecTrending {
 
-        public static readonly int version = 2;
+        public static readonly int version = 5;
         public static readonly string version_message = @"
 SWD Execution Trending - JavaScript builder, version " + version.ToString();
         public static readonly string usage = version_message + @"
